@@ -25,9 +25,8 @@ total_estimate = host_estimate + v6_Seg_Count
 # Case variable to track how to calculate the print out formula
 manual_or_auto = input("Manually assign host count per segment or distrbute hosts evenly?(manual, auto)\n")
 
-if manual_or_auto == 'auto' or 'Auto' or 'a' or 'A' or 'aut' or 'Aut' or 'Au' or 'au' : # if auto option selected divides hosts by segments
+if manual_or_auto == 'auto' or 'Auto' or 'a' or 'A' or 'aut' or 'Aut' or 'Au' or 'au':  # if auto option selected divides hosts by segments
     host_estimate = int(host_estimate / v6_Seg_Count)
-
 
 # Asks for output information
 ip_file_path = input(r"Enter your file name (path optional)." + "\n")
@@ -87,7 +86,8 @@ def format_cider():
     seg0, seg1, seg2 = cider_slice()  # Slices the global address into hextets
     truncated_list = network_cider_trunc(seg0, seg1, seg2)  # trunkates variables from leading zeros
 
-    global_segment_compressed = concat_smash(truncated_list) # gobal_segment_compressed gets pulled into dictionary_fill_cider
+    global_segment_compressed = concat_smash(
+        truncated_list)  # gobal_segment_compressed gets pulled into dictionary_fill_cider
     segments_dict, segments_data = dictionary_fill_cider(v6_Seg_Count, host_estimate, global_segment_compressed)
     return segments_dict, segments_data
 
@@ -139,8 +139,9 @@ def host_cider_trunc(seg0):
             while len(hextet_vars[i]) > 1 and hextet_vars[i].startswith('0'):
                 # Remove a single leading zero, stop if only one character remains
                 hextet_vars[i] = hextet_vars[i][1:]
-    hextet_vars = ''.join(map(str, hextet_vars)) # converts back into a string
+    hextet_vars = ''.join(map(str, hextet_vars))  # converts back into a string
     return hextet_vars
+
 
 def concat_smash(var_addr):
     '''Combines a list's index values
@@ -198,7 +199,7 @@ def dictionary_fill_cider(num_segments, num_hosts_per_segment, global_segment_co
     # joins the global prefix with the subnet and host bits segments
     # increments the full segments
     match manual_or_auto:
-        case 'auto' | 'Auto' | 'a' | 'A' | 'aut' | 'Aut' | 'Au' | 'au' :
+        case 'auto' | 'Auto' | 'a' | 'A' | 'aut' | 'Aut' | 'Au' | 'au':
             segments_dict = {}  # Create the outer dictionary
 
             '''The for loops below will iterate through and fill up a dictionary with
@@ -210,23 +211,23 @@ def dictionary_fill_cider(num_segments, num_hosts_per_segment, global_segment_co
 
                 for j in range(0, num_hosts_per_segment):
                     host_id = j + 1  # host number ID to be cat. with host name
-                    host_name = f"host{host_id}" # increments the value of each hostname key
-                    address = f"{host_id:04x}" # starts host segment at 0 and increments upwards in hexidecimal
-                    address = host_cider_trunc(address) # removes leading zeros from host address
+                    host_name = f"host{host_id}"  # increments the value of each hostname key
+                    address = f"{host_id:04x}"  # starts host segment at 0 and increments upwards in hexidecimal
+                    address = host_cider_trunc(address)  # removes leading zeros from host address
 
-                    for l in range(0 ,v6_Seg_Count):
+                    for l in range(0, v6_Seg_Count):
                         # removes leading zeros from the subnet hextet
                         subnet_address = host_cider_trunc(subnet_address)
 
                     address = f"{global_segment_compressed}{subnet_address}:{address}{address_prefix}"
-                    segment_data[host_name] = address # assigns ip address and hostname as a pair
+                    segment_data[host_name] = address  # assigns ip address and hostname as a pair
 
                 for key, value in segments_dict.items():
-                    print(f"{key} {value}") # prints out the segment name
+                    print(f"{key} {value}")  # prints out the segment name
                     for key, value in segment_data.items():
-                        print(f"{key} {value}") # prints out all values stored in the dictionary to the terminal
+                        print(f"{key} {value}")  # prints out all values stored in the dictionary to the terminal
                     segments_dict[segment_name] = segment_data  # Nest segment_data within segments_dict
- # Prints out dictionary to console
+        # Prints out dictionary to console
         case 'man' | 'Man' | 'M' | 'm' | 'manual' | 'Manual' | 'ma' | 'Ma':
             for i in range(0, num_segments):
                 segment_name = input(f"Enter subnet name\n")
@@ -236,20 +237,21 @@ def dictionary_fill_cider(num_segments, num_hosts_per_segment, global_segment_co
 
                 for j in range(0, num_hosts):
                     host_id = j + 1  # host number ID to be cat. with host name
-                    host_name = f"host{host_id}" # increments the value of each hostname key
-                    address = f"{host_id:04x}" # starts host segment at 0 and increments upwards in hexidecimal
-                    address = host_cider_trunc(address) # removes leading zeros from host address
-                    subnet_address = host_cider_trunc(subnet_address) # removes leading zeros from subnet
+                    host_name = f"host{host_id}"  # increments the value of each hostname key
+                    address = f"{host_id:04x}"  # starts host segment at 0 and increments upwards in hexidecimal
+                    address = host_cider_trunc(address)  # removes leading zeros from host address
+                    subnet_address = host_cider_trunc(subnet_address)  # removes leading zeros from subnet
                     address = f"{global_segment_compressed}{subnet_address}:{address}{address_prefix}"
-                    segment_data[host_name] = address # assigns ip address and hostname as a pair
+                    segment_data[host_name] = address  # assigns ip address and hostname as a pair
                     for key, value in segment_data.items():
-                        print(f"{key} {value}") # prints out all the values stored in  dictionary to the terminal
+                        print(f"{key} {value}")  # prints out all the values stored in  dictionary to the terminal
 
                 segments_dict[segment_name] = segment_data  # Nest host address data with corresponding segment
 
         case _:
             raise ValueError("error, bad input. Please try again")
     return segments_dict, segment_data
+
 
 def cider_batch_addr_write(segments_dict, segment_data):
     # This function prints out everything for the cider_notation
