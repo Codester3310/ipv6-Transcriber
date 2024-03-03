@@ -3,8 +3,8 @@ import json, math
 # Save key names to key values in dictionary
 
 # Asks for string to be used in major portions of algorithm
-# network_address = input("Please enter your Global Routing IP address (include colons).\n")
-network_address = "2001:0451:0051"  # Placeholder
+network_address = input("Please enter your Global Routing IP address (include colons).\n")
+# network_address = "2001:0451:0051"  # Placeholder
 global_prefix_cider = ''
 host_segment = '0000:0000:0000:0000'
 # Determines notation and format of output
@@ -89,7 +89,7 @@ def format_cider():
 
     global_segment_compressed = concat_smash(truncated_list) # gobal_segment_compressed gets pulled into dictionary_fill_cider
     segments_dict, segments_data = dictionary_fill_cider(v6_Seg_Count, host_estimate, global_segment_compressed)
-
+    return segments_dict, segments_data
 
 
 def cider_slice():
@@ -193,44 +193,60 @@ def prefix_length(total_address_count):
     return f"/{actual_prefix_length}"
 
 
-def dictionary_fill_cider(num_segments, num_hosts_per_segment, global_segment_compressed, segments_dict=None):
+def dictionary_fill_cider(num_segments, num_hosts_per_segment, global_segment_compressed, segments_dict=segments_dict,
+                          subnet_address=subnet_address):
     # joins the global prefix with the subnet and host bits segments
     # increments the full segments
     match manual_or_auto:
         case 'auto' | 'Auto' | 'a' | 'A' | 'aut' | 'Aut' | 'Au' | 'au' :
             segments_dict = {}  # Create the outer dictionary
 
+            '''The for loops below will iterate through and fill up a dictionary with
+            hostnames and network broadcast domains with their respective ip addresses values '''
             for i in range(0, num_segments):
                 network_chunk = f"{global_segment_compressed}{subnet_address}{i:04x}"  # Generate segment prefix
                 segment_data = {}  # Create a new dictionary for each segment
                 segment_name = f"Segment{i}"
 
                 for j in range(0, num_hosts_per_segment):
-                    host_id = j + 1  # Use descriptive variable for clarity
-                    host_name = f"host{host_id}"
-                    address = f"{host_id:04x}"
+                    host_id = j + 1  # host number ID to be cat. with host name
+                    host_name = f"host{host_id}" # increments the value of each hostname key
+                    address = f"{host_id:04x}" # starts host segment at 0 and increments upwards in hexidecimal
                     address = host_cider_trunc(address) # removes leading zeros from host address
-                    address = f"{global_segment_compressed}:{address}{address_prefix}"
-                    segment_data[host_name] = address
 
+                    for l in range(0 ,v6_Seg_Count):
+                        # removes leading zeros from the subnet hextet
+                        subnet_address = host_cider_trunc(subnet_address)
 
-                segments_dict[segment_name] = segment_data  # Nest segment_data within segments_dict
-                segments_dict[network_chunk] = segment_data  # Include a reference by prefix
-        case 'man' | 'Man' | 'M' | 'm' | 'manual' | 'Manual':
-            for i in range(0, num_segments): #TODO need to pull full ip addre   sses into these loops
+                    address = f"{global_segment_compressed}{subnet_address}:{address}{address_prefix}"
+                    segment_data[host_name] = address # assigns ip address and hostname as a pair
+
+                for key, value in segments_dict.items():
+                    print(f"{key} {value}") # prints out the segment name
+                    for key, value in segment_data.items():
+                        print(f"{key} {value}") # prints out all values stored in the dictionary to the terminal
+                    segments_dict[segment_name] = segment_data  # Nest segment_data within segments_dict
+ # Prints out dictionary to console
+        case 'man' | 'Man' | 'M' | 'm' | 'manual' | 'Manual' | 'ma' | 'Ma':
+            for i in range(0, num_segments):
                 segment_name = input(f"Enter subnet name\n")
                 network_chunk = f"{global_segment_compressed}{subnet_address}{i:04x}"  # Generate segment prefix
+                num_hosts = int(input("How many hosts in this subnet?\n"))
                 segment_data = {}  # Create a new dictionary for each segment
 
-
-                for j in range(0, num_hosts_per_segment):
-                    host_id = j + 1  # Use descriptive variable for clarity
-                    host_name = f"host{host_id}"
-                    address = f"{global_segment_compressed}:{host_id:04x}"
+                for j in range(0, num_hosts):
+                    host_id = j + 1  # host number ID to be cat. with host name
+                    host_name = f"host{host_id}" # increments the value of each hostname key
+                    address = f"{host_id:04x}" # starts host segment at 0 and increments upwards in hexidecimal
                     address = host_cider_trunc(address) # removes leading zeros from host address
-                    segment_data[host_name] = address
-                segments_dict[segment_name] = segment_data  # Nest segment_data within segments_dict
-                segments_dict[network_chunk] = segment_data  # Include a reference by prefix
+                    subnet_address = host_cider_trunc(subnet_address) # removes leading zeros from subnet
+                    address = f"{global_segment_compressed}{subnet_address}:{address}{address_prefix}"
+                    segment_data[host_name] = address # assigns ip address and hostname as a pair
+                    for key, value in segment_data.items():
+                        print(f"{key} {value}") # prints out all the values stored in  dictionary to the terminal
+
+                segments_dict[segment_name] = segment_data  # Nest host address data with corresponding segment
+
         case _:
             raise ValueError("error, bad input. Please try again")
     return segments_dict, segment_data
@@ -264,8 +280,8 @@ def notation_select(notation):  # Selects output write format
             '''
             format_cisco()
         case 'CIDER' | 'cider' | 'Cider' | 'Cid' | 'cid':
-            format_cider()
-            write_ipv6_to_json(truncated_list)
+            segments_dict = format_cider()
+            write_ipv6_to_json(segments_dict)
         case 'verbose' | 'Verbose' | 'v' | 'V':
             # Cisco router command output
             format_verbose()
@@ -275,7 +291,8 @@ def notation_select(notation):  # Selects output write format
 
 
 '''---------------This is where the main program starts----------------'''
-address_prefix = prefix_length(total_estimate)  # calculates prefix /xx variable
+# address_prefix = prefix_length(total_estimate)  # calculates prefix /xx variable
+address_prefix = '/64'
 
 notation_select(notation)
 print(segments_dict)
