@@ -1,9 +1,9 @@
 import json
 class cisco:
     '''An object used to keep track of ip addressing and commands'''
-    def __init__(self, ip, subnet):
-        self.ip_addr = ip
-        self.subnet = subnet
+    def __init__(self):
+        self.ip_addr = ''
+        self.subnet = ''
         self.vlan_name = ''
         self.interface_id = ''
         self.vlan_id = 1
@@ -11,7 +11,7 @@ class cisco:
         self.interfacerange = {}
         
         
-    def vlan(self):
+    def vlan(self, **vlan_id):
         '''
         This defines the vlan creation module
         First while statement checks to see if Vlan ID falls within bounds
@@ -97,7 +97,7 @@ class cisco:
                     if interface_sgfa.lower() in ['S', 'S0/0', 'S0', 'Serial', 'ser']:
                         i -= 1
                         self.command[i] = f"interface range serial0/{i} - {range}"
-                        self.interface_dictionary.append(f"range{i}":f"interface range serial0/{i} - {range}")
+                        self.interface_dictionary.append(f"interface range serial0/{i} - {range}")
                     elif interface_sgfa.lower() in ['f', 'fa', 'fast', 'fastethernet', 'fa0', 'fa0/0', 'fa0/0.0']:
                         self.command[i] = f"interface range FastEthernet0/{i} - {range}"
                     elif interface_sgfa.lower() in ['g', 'gi', 'giga', 'gigabit', 'g0', 'g0/0', 'g0/0.0']:
@@ -109,6 +109,3 @@ class cisco:
 
 
 
-
-# -------------------------------------------------
-    ciscocommands[x].port_range(s, int(5))

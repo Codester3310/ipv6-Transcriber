@@ -6,30 +6,34 @@ import json, math, Cisco_Module
 network_address = "2001:0451:0051" # Placeholder
 global_prefix_cider = ''
 host_segment = '0000:0000:0000:0000'
+c = False
 # Determines notation and format of output
-notation = input("How verbose should the file save (options include: Cisco, CIDER, verbose)\n")
-                    
-# Asks for variables that determine range and loop iterations
-v6_Seg_Count = int(input("How many subnet segments do you want?\n"))
 
-''' subnet_address is the largest subnet addr defined. 
-    Increment downwards till zero to use all subnets
-    OR increment from zero till your index is greater than subnet_address
-'''
-subnet_address = (f"{v6_Seg_Count:04x}") 
 
-host_estimate = int(input("How many hosts do you expect to use your network (total)?\n"))
-total_estimate = host_estimate + v6_Seg_Count
+def ver_cid_variable_forager():      
+    '''IMPORTANT-- this function grabs all variables required for CIDER and Verbose formats'''
+    global v6_Seg_Count, subnet_address, host_estimate, total_estimate,host_distribute, ip_file_path, segments_dict, truncated_list             
+#   Asks for variables that determine range and loop iterations
+    v6_Seg_Count = int(input("How many subnet segments do you want?\n"))
 
-# Case variable to track how to calculate the print out formula
-host_distribute = input("Manually assign host count per segment or distrbute hosts evenly?\n")
+    ''' subnet_address is the largest subnet addr defined. 
+        Increment downwards till zero to use all subnets
+        OR increment from zero till your index is greater than subnet_address
+    '''
+    subnet_address = (f"{v6_Seg_Count:04x}") 
 
-# Asks for output information
-ip_file_path = input(r"Enter your file name (path optional)." + "\n")
+    host_estimate = int(input("How many hosts do you expect to use your network (total)?\n"))
+    total_estimate = host_estimate + v6_Seg_Count
 
-truncated_list = []
-segments_dict = {}
-_ = ''
+    # Case variable to track how to calculate the print out formula
+    host_distribute = input("Manually assign host count per segment or distrbute hosts evenly?\n")
+
+    # Asks for output information
+    ip_file_path = input(r"Enter your file name (path optional)." + "\n")
+
+    truncated_list = []
+    segments_dict = {}
+    _ = ''
 
 def write_ipv6_to_json(segmentsW): # Write file function
     '''
@@ -55,6 +59,7 @@ def write_ipv6_to_json(segmentsW): # Write file function
 
 def format_verbose (): # Defines verbose conversion format
 # this loop saves addresses to the segments dictionary
+    ver_cid_variable_forager()
     for i in (v6_Seg_Count):
 
         key = f"subnet_{i}".format(i+1)
@@ -64,11 +69,57 @@ def format_verbose (): # Defines verbose conversion format
     pass
 
 
-def format_cisco (export):
-    
-    # Defines Cisco conversion function. This runs a for loop to save ipv6 host addresses in a cisco router format
+def format_cisco():
+    keywords = []
+    cisco_command_dict = {}
+    while 'q' or 'quit' != keywords:
+        keywords.append((input("Input a command (ex. Vlan, range, q for quit)")))
+        if 'q' or 'quit' == keywords:
+            return cisco_command_dict
+        cisco = Cisco_Module.cisco() # Assigns the variable 'cisco' to an instance of the Cisco class
+        try:
+            routers = int(input("How many routers are you configuring?"))
+            if isinstance(routers, int):
+                    for i in range(routers):
 
-    return cisco_save(segments_dict)
+                        '''Vlan keyword check. Runs Cisco_Module.vlan module'''
+                        if "vlan" in keywords:
+                            
+                            # Requests Vlan ID from terminal
+                            cisco_command_dict[i] =  cisco.vlan() # 
+                # Defines Cisco conversion function. This runs a for loop to save ipv6 host addresses in a cisco router format
+            else: raise ValueError
+        except ValueError:
+            print("Invalid value entered.") 
+
+    return cisco_command_dict
+
+def cisco_switch_commands():
+    '''
+    Generate cisco commands
+    Pulls in Global IP addr, segment portion, and
+    '''
+    print("Enable\n")
+    print("Configure Terminal\n")
+    for i in v6_Seg_Count:
+    # writes out ipv6 interface access and ip assignment commands 
+        print(f"interface FastEthernet0/{range(i)}\n")
+        print("ipv6 enable\n")
+        print(f"ipv6 address {network_address}{subnet_address[i]}{address_prefix}")
+
+def cisco_save(save_data, f):
+    '''need to write this to be the final function that saves dictionary in cisco format
+        to a dict and finishes by running write_ipv6_to_json() function.
+    '''
+    with open( file=ip_file_path, # Opens file to write and Designates the writing filepath 
+        mode='a+', encoding=object) as f: # file_out_obj is a placeholder variable
+        json.dump(save_data, f, indent=4)
+        f.write('\n')  # Add a newline after each entry
+        # TODO write save file in txt format
+    # save_data = Cisco_Module.cisco()
+    # save_data[x].port_range(s, int(5))
+
+
 
 def format_cider():
     '''
@@ -78,14 +129,13 @@ def format_cider():
             **or fixture uses the same or different trunkation format
             **before plug-and-playing .json file     
     '''
+    ver_cid_variable_forager()
     address_prefix = prefix_length(total_estimate)
     seg0, seg1, seg2 = cider_slice() # Slices the global address into hextets   
     truncated_list = cider_trunc(seg0, seg1, seg2) # trunkates variables from leading zeros
 
     global_segment_compressed = concat_smash(truncated_list)
     cider_batch_addr_write(v6_Seg_Count, host_estimate)
-
-
 
 def cider_slice():
     
@@ -131,25 +181,6 @@ def concat_smash(var_addr):
 
     return rejoined_global_address
 
-def cisco_switch_commands():
-    '''
-    Generate cisco commands
-    Pulls in Global IP addr, segment portion, and
-    '''
-    print("Enable\n")
-    print("Configure Terminal\n")
-    for i in v6_Seg_Count:
-    # writes out ipv6 interface access and ip assignment commands 
-        print(f"interface FastEthernet0/{range(i)}\n")
-        print("ipv6 enable\n")
-        print(f"ipv6 address {network_address}{subnet_address[i]}{address_prefix}")
-
-def cisco_save(save_data):
-    '''need to write this to be the final function that saves dictionary in cisco format
-        to a dict and finishes by running write_ipv6_to_json() function.
-    '''
-    save_data = Cisco_Module()
-    save_data[x].port_range(s, int(5))
 
 def prefix_length(total_address_count):
   """
@@ -167,9 +198,6 @@ def prefix_length(total_address_count):
   actual_prefix_length = math.ceil(estimated_prefix_length)
   # This would be inaccurate and doesn't account for network/broadcast addresses
   return f"/{actual_prefix_length}"
-
-
-
 
 def cider_batch_addr_write(num_segments,num_hosts_per_segment ):
     # joins the global prefix with the host bits segment
@@ -208,11 +236,16 @@ def notation_select(notation): # Selects output write format
             Args:
 
             '''
-            format_cisco()   
+            global file_out_obj
+            file_out_obj = format_cisco()
+            ip_file_path = input(r"Enter your file name (path optional)." + "\n")
+            cisco_save(file_out_obj, ip_file_path) 
+
         case 'CIDER' | 'cider' | 'Cider' | 'Cid' | 'cid' |'CIDR' |'cidr':
             '''
             This prints out in CIDER format, using ipv6 CIDR notation
             '''
+            address_prefix = prefix_length(total_estimate) # calculates prefix /xx variable
             format_cider()
             write_ipv6_to_json(truncated_list)      
         case 'verbose' | 'Verbose' | 'v' | 'V':
@@ -222,12 +255,22 @@ def notation_select(notation): # Selects output write format
         case _:
             raise ValueError("error, bad input. Please try again")
 
-address_prefix = prefix_length(total_estimate) # calculates prefix /xx variable
+        
 '''---------------This is where the main program starts----------------'''
 def __main__():
+    global c
+    while c == False:
+        try:
+            notation = input("How verbose should the file save (options include: Cisco, CIDER, verbose)\n")
+            if isinstance(notation, str):
+                notation_select(notation) #
+                c = True
+            else:
+                raise ValueError
+        except ValueError:
+            print("Invalid entry. Please enter the correct format. (Value Error)")
 
-
-    notation_select(notation)
 
 
     # Call function to test subnet function return variable against logic table
+__main__()
