@@ -9,8 +9,8 @@ class cisco:
         self.interface_id = ''
         self.vlan_id = 1
         self.i = ''
+        self.vlan_active = ''
         self.sw_mode = ''
-        self.vlan = ''
         self.interface = ''
 
         
@@ -19,7 +19,7 @@ class cisco:
         self.sw_mode_dict = {} # Switchport Mode dictionary
         self.interface_dict = {} # Interface dictionary
         
-    def vlan(self, **vlan_id):
+    def vlan(self):
         '''
         This defines the vlan creation module
         First while statement checks to see if Vlan ID falls within bounds
@@ -28,10 +28,10 @@ class cisco:
         
         while self.i != 'r':
             try:
-                self.vlan_id = int(input("Enter the vlan id\n"))
+                self.vlan_id = int(input("Enter the Vlan ID\n"))
                 if self.vlan_id > 1 and self.vlan_id < 999:
                     self.i = 'r'
-                    self.vlan = True
+                    self.vlan_active = True
                 else:
                     raise TypeError("Invalid entry. Vlan must be an integer.")
             except TypeError:
@@ -84,7 +84,7 @@ class cisco:
         This module prints and outputs all of the 
         commands from the instance to a file and the shell
         '''
-        if self.vlan == True:
+        if self.vlan_active == True:
             print(f"vlan {self.vlan_id}")
             print(f"name {self.vlan_name}")
             # print(f"int {self.interface_id}")
@@ -99,7 +99,7 @@ class cisco:
             print(f"switchport access vlan {self.vlan_id}")
 
             self.sw_mode_dict["Switchport mode"] = (f"switchport mode {self.sw_mode}")
-            if self.vlan == True:
+            if self.vlan_active == True:
                 self.sw_mode_dict["Switchport mode"] = (f"switchport access vlan {self.vlan_id}")
                 self.cisco_dict["Switchport Modes"] = self.sw_mode_dict
         

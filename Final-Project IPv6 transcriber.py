@@ -116,7 +116,7 @@ def format_cisco():
                         if "vlan" in keywords:
                             
                             # Requests Vlan ID from terminal
-                            cisco.vlan()
+                            go = cisco.vlan()
                         
                         if "range" in keywords:
                             try:
@@ -137,7 +137,7 @@ def format_cisco():
             print("Invalid value entered.") 
         finally:
             # Saves output
-            cisco_command_dict["Vlan{i}"] = cisco.output()             
+            cisco_command_dict["Vlan" + str(i)] = cisco.output()             
             return cisco_command_dict
 
 def cisco_switch_commands():
@@ -157,18 +157,18 @@ def cisco_save(save_data, f):
     '''need to write this to be the final function that saves dictionary in cisco format
         to a dict and finishes by running write_ipv6_to_json() function.
     '''
-    o == True
+    o = True
     while o == True:
         global ip_file_path
         try:
-            if ip_file_path == True:    
+            if ip_file_path != '':    
                 with open( file=ip_file_path, # Opens file to write and Designates the writing filepath 
                     mode='a+') as f: # file_out_obj is a placeholder variable
                     json.dump(save_data, f, indent=4)
                     f.write('\n')  # Add a newline after each entry
                     o = False
             else:
-                raise FileNotFoundError
+                raise FileNotFoundError("File name blank")
         except FileNotFoundError:
             ip_file_path = "Untitled_Cisco_Commands.json"
             o = True
@@ -321,7 +321,7 @@ def __main__():
     global c
     while c == False:
         try:
-            notation = input("How verbose should the file save (options include: Cisco, CIDER, verbose)\n")
+            notation = input("How verbose should the file save (options include: Cisco, CIDER, Verbose)\n")
             if isinstance(notation, str):
                 notation_select(notation) #
                 c = True
