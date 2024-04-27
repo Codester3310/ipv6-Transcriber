@@ -34,13 +34,14 @@ class cisco:
                     self.vlan_active = True
                 else:
                     raise TypeError("Invalid entry. Vlan must be an integer.")
-            except TypeError:
-                self.i = ''
-                self.vlan_id = int(input("What VLAN will you use? (enter ID) \n"))
-                continue
+            # except TypeError:
+            #     self.i = ''
+            #     print("TYPE ERROR. Are you assigning values correctly?")
+            #     self.vlan_id = int(input("What VLAN will you use? (enter ID) \n"))
+            #     continue
             except:
                 print("Error. Unhandled exception in vlan module.")
-                print("Error at vlan_id value entry.")
+            #     print("Error at vlan_id value entry.")
             try:
                 self.vlan_name = input("What is the Vlan name? \n")
                 if isinstance(self.vlan_name, str):

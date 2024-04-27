@@ -9,6 +9,7 @@ c = False
 global_prefix_cider = ''
 truncated_list = []
 segments_dict = {}
+command_list = ['Vlan', 'Range', 'Default Gateway', 'Quit']
 _ = ''
 # Determines notation and format of output
 
@@ -102,21 +103,32 @@ def format_cisco():
     cisco_command_dict = {}
     interface_type = 'fa0/0'
     while True:
-        user_input = (input("Input a command (ex. Vlan, range, q for quit)\n")) 
-        keywords.append(user_input) # input Checker
-        if user_input.lower() in ("q", "quit"):
-            return cisco_command_dict
-        cisco = Cisco_Module.cisco(keywords) # Assigns the variable 'cisco' to an instance of the Cisco class
+        try:
+            user_input = (input("Input a command (ex. Vlan, range, q for quit)\n"))
+            if isinstance(user_input, str): 
+                keywords.append(user_input) # input Checker
+                if user_input.lower() in ("q", "quit"):
+                    break
+                cisco = Cisco_Module.cisco(keywords) # Assigns the variable 'cisco' to an instance of the Cisco class
+                if user_input.lower() in ['help', 'h']:
+                    print(f"Commands include:\n{command_list}")
+                
+                    raise ValueError("Unknown Value error.")
+            else:
+                raise ValueError
+        except ValueError:
+            print("Error, bad keyword detected. Type Help for list of commands")
+            continue
         try:
             routers = int(input("How many routers are you configuring?\n"))
             if isinstance(routers, int):
-                    for i in range(routers):
+                    for iteration in range(routers):
 
                         '''Vlan keyword check. Runs Cisco_Module.vlan module'''
                         if "vlan" in keywords:
                             
                             # Requests Vlan ID from terminal
-                            go = cisco.vlan()
+                            cisco_command_dict['vlan'+ iteration] = cisco.vlan()
                         
                         if "range" in keywords:
                             try:
@@ -137,7 +149,7 @@ def format_cisco():
             print("Invalid value entered.") 
         finally:
             # Saves output
-            cisco_command_dict["Vlan" + str(i)] = cisco.output()             
+            cisco_command_dict["Vlan" + str(iteration)] = cisco.output()             
             return cisco_command_dict
 
 def cisco_switch_commands():
@@ -161,7 +173,9 @@ def cisco_save(save_data, f):
     while o == True:
         global ip_file_path
         try:
-            if ip_file_path != '':    
+            if ip_file_path != '':
+                if ip_file_path[-5:] !='.json': # Checks to see if entry has .json file extension
+                    ip_file_path = f"{ip_file_path}.json" # adds .json if missing   
                 with open( file=ip_file_path, # Opens file to write and Designates the writing filepath 
                     mode='a+') as f: # file_out_obj is a placeholder variable
                     json.dump(save_data, f, indent=4)

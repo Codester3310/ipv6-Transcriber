@@ -1,0 +1,11 @@
+{
+    "Vlan0": {}
+}
+{
+    "Vlan0": {
+        "vlan commands": {
+            "vlan_id": "vlan 10",
+            "name": "name Jose"
+        }
+    }
+}
