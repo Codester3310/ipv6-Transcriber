@@ -252,7 +252,7 @@ def dictionary_fill_cider(num_segments, num_hosts_per_segment, global_segment_co
             raise ValueError("error, bad input. Please try again")
     return segments_dict, segment_data
 
-
+    
 def cider_batch_addr_write(segments_dict, segment_data):
     # This function prints out everything for the cider_notation
     for segmentname, netip in segments_dict.items():
